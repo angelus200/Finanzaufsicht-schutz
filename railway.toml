@@ -2,8 +2,5 @@
 builder = "dockerfile"
 
 [deploy]
-healthcheckPath = "/api/health"
-healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 5
-preDeployCommand = "./node_modules/.bin/prisma migrate deploy"
