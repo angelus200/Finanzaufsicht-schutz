@@ -1,0 +1,291 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// AUTH (Clerk sync)
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  clerkId       String    @unique
+  email         String    @unique
+  firstName     String?
+  lastName      String?
+  company       String?
+  role          UserRole  @default(CUSTOMER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  orders        Order[]
+  schnellchecks Schnellcheck[]
+  submissions   CaseSubmission[]
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  EDITOR
+}
+
+// ============================================
+// PRODUKTE & BESTELLUNGEN
+// ============================================
+
+model Product {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  name        String
+  description String?
+  price       Int                             // Preis in Cents (14900 = EUR 149)
+  currency    String      @default("EUR")
+  tier        ProductTier
+  active      Boolean     @default(true)
+  features    Json?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  orders      Order[]
+}
+
+enum ProductTier {
+  SCHNELLCHECK          // EUR 149
+  FALLANALYSE           // EUR 990
+  VOLLPAKET             // EUR 4.900
+  STRATEGIEBEGLEITUNG   // EUR 14.900
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  productId       String
+  status          OrderStatus @default(PENDING)
+  paymentProvider String?
+  paymentId       String?
+  amount          Int
+  currency        String      @default("EUR")
+  invoiceUrl      String?
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user            User        @relation(fields: [userId], references: [id])
+  product         Product     @relation(fields: [productId], references: [id])
+  documents       OrderDocument[]
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+model OrderDocument {
+  id        String   @id @default(cuid())
+  orderId   String
+  name      String
+  fileUrl   String
+  fileType  String
+  createdAt DateTime @default(now())
+
+  order     Order    @relation(fields: [orderId], references: [id])
+}
+
+// ============================================
+// SCHNELLCHECK
+// ============================================
+
+model Schnellcheck {
+  id              String             @id @default(cuid())
+  userId          String?
+  sessionId       String?
+  answers         Json
+  result          SchnellcheckResult
+  score           Int
+  summary         String?
+  recommendations Json?
+  createdAt       DateTime           @default(now())
+
+  user            User?              @relation(fields: [userId], references: [id])
+}
+
+enum SchnellcheckResult {
+  GREEN   // Kein Tatbestand erkennbar
+  YELLOW  // Prüfenswert
+  RED     // Akut handeln
+}
+
+// ============================================
+// TRANSPARENZDATENBANK
+// ============================================
+
+model CaseEntry {
+  id                String        @id @default(cuid())
+  slug              String        @unique
+  authority         Authority
+  authorityUnit     String?
+  procedureType     ProcedureType
+  companyName       String?
+  companyCountry    String?
+  warningDate       DateTime?
+  warningUrl        String?
+  allegedOffense    String
+  allegedLegalBasis String?
+
+  hasInvestors      Boolean?
+  hasContracts      Boolean?
+  hasMoneyFlow      Boolean?
+  factualBasis      String?
+
+  outcome           CaseOutcome?
+  outcomeDate       DateTime?
+  outcomeDetails    String?
+  courtReference    String?
+
+  durationDays      Int?
+  companyDefended   Boolean?
+  defenseStrategy   String?
+  isPublic          Boolean       @default(true)
+  source            String?
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  tags              CaseTag[]
+}
+
+enum Authority {
+  BAFIN
+  FMA
+  FINMA
+  ESMA
+}
+
+enum ProcedureType {
+  PUBLIC_WARNING
+  CEASE_AND_DESIST
+  FINE
+  CRIMINAL_REFERRAL
+  PROSPECTUS_REQUIREMENT
+  OTHER
+}
+
+enum CaseOutcome {
+  PENDING
+  DISMISSED
+  WARNING_REMOVED
+  INJUNCTION_UPHELD
+  COURT_WIN_COMPANY
+  COURT_WIN_AUTHORITY
+  SETTLED
+  OTHER
+}
+
+model CaseTag {
+  id          String    @id @default(cuid())
+  caseEntryId String
+  tag         String
+
+  caseEntry   CaseEntry @relation(fields: [caseEntryId], references: [id])
+
+  @@unique([caseEntryId, tag])
+}
+
+// ============================================
+// FALL-EINREICHUNGEN
+// ============================================
+
+model CaseSubmission {
+  id          String           @id @default(cuid())
+  userId      String?
+  email       String
+  companyName String
+  authority   Authority
+  description String
+  documents   Json?
+  status      SubmissionStatus @default(PENDING)
+  reviewNotes String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  user        User?            @relation(fields: [userId], references: [id])
+}
+
+enum SubmissionStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+// ============================================
+// CONTENT & PRESSE
+// ============================================
+
+model PressRelease {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  subtitle    String?
+  content     String
+  publishedAt DateTime?
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model MonitorReport {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  period      String
+  reportType  ReportType
+  content     String
+  stats       Json?
+  publishedAt DateTime?
+  isPublished Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum ReportType {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+// ============================================
+// NEWSLETTER
+// ============================================
+
+model NewsletterSubscriber {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  firstName      String?
+  confirmedAt    DateTime?
+  unsubscribedAt DateTime?
+  createdAt      DateTime  @default(now())
+}
+
+// ============================================
+// KONTAKTANFRAGEN
+// ============================================
+
+model ContactRequest {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  company   String?
+  subject   String
+  message   String
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+}
