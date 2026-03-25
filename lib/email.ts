@@ -1,10 +1,12 @@
 import { Resend } from "resend";
 
-if (!process.env.RESEND_API_KEY) {
-  throw new Error("RESEND_API_KEY fehlt in den Umgebungsvariablen");
+// Lazy-Initialisierung: kein Import-Crash beim Build wenn Key fehlt
+function getResend(): Resend {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY fehlt in den Umgebungsvariablen");
+  }
+  return new Resend(process.env.RESEND_API_KEY);
 }
-
-export const resend = new Resend(process.env.RESEND_API_KEY);
 
 const EMAIL_FROM = process.env.EMAIL_FROM ?? "info@finanzaufsicht-schutz.de";
 
@@ -20,7 +22,7 @@ export async function sendeBestellbestaetigung({
   produktName: string;
   betrag: string;
 }) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: EMAIL_FROM,
     to: email,
     subject: `Ihre Bestellung: ${produktName}`,
@@ -41,7 +43,7 @@ export async function sendeNewsletterBestaetigung({
   email: string;
   firstName?: string;
 }) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: EMAIL_FROM,
     to: email,
     subject: "Newsletter-Anmeldung bestätigen",
