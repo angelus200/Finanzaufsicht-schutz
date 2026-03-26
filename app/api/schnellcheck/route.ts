@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 import { evaluiereSchnellcheck, type SchnellcheckInput } from "@/lib/schnellcheck-logic";
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId: string | null = null; // Clerk deaktiviert — später reaktivieren
     const body = await request.json();
     const input: SchnellcheckInput = body.answers;
 

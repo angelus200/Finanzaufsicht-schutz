@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Show } from "@clerk/nextjs";
-import { SignInButton, SignOutButton, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Shield, Menu, X } from "lucide-react";
@@ -17,6 +15,7 @@ const navLinks = [
   { href: "/ueber-uns", label: "Über uns" },
 ];
 
+// Clerk-Auth-Komponenten deaktiviert — werden später reaktiviert
 export function Navbar() {
   const pathname = usePathname();
   const [menuOffen, setMenuOffen] = useState(false);
@@ -49,22 +48,9 @@ export function Navbar() {
 
           {/* Auth-Bereich */}
           <div className="hidden md:flex items-center gap-3">
-            <Show when="signed-out">
-              <SignInButton mode="modal">
-                <Button variant="ghost" size="sm">
-                  Anmelden
-                </Button>
-              </SignInButton>
-              <Button size="sm" className="bg-blue-900 hover:bg-blue-800" render={<Link href="/schnellcheck" />}>
-                Schnellcheck starten
-              </Button>
-            </Show>
-            <Show when="signed-in">
-              <Button variant="ghost" size="sm" render={<Link href="/dashboard" />}>
-                Dashboard
-              </Button>
-              <UserButton />
-            </Show>
+            <Button size="sm" className="bg-blue-900 hover:bg-blue-800" render={<Link href="/schnellcheck" />}>
+              Schnellcheck starten
+            </Button>
           </div>
 
           {/* Mobile-Menü-Toggle */}
@@ -93,24 +79,13 @@ export function Navbar() {
               </Link>
             ))}
             <hr className="my-2" />
-            <Show when="signed-out">
-              <Link
-                href="/schnellcheck"
-                className="text-sm font-semibold text-blue-900"
-                onClick={() => setMenuOffen(false)}
-              >
-                → Schnellcheck starten
-              </Link>
-            </Show>
-            <Show when="signed-in">
-              <Link
-                href="/dashboard"
-                className="text-sm font-medium text-gray-700"
-                onClick={() => setMenuOffen(false)}
-              >
-                Dashboard
-              </Link>
-            </Show>
+            <Link
+              href="/schnellcheck"
+              className="text-sm font-semibold text-blue-900"
+              onClick={() => setMenuOffen(false)}
+            >
+              → Schnellcheck starten
+            </Link>
           </nav>
         </div>
       )}

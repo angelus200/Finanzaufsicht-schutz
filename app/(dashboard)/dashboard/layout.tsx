@@ -1,7 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
 import { Shield, LayoutDashboard, ShoppingBag, FileText, User } from "lucide-react";
 
 const navItems = [
@@ -11,17 +8,12 @@ const navItems = [
   { href: "/dashboard/profil", label: "Profil", icon: User },
 ];
 
-export default async function DashboardLayout({
+// Auth-Check deaktiviert — Clerk wird später reaktiviert
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect("/sign-in");
-  }
-
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
@@ -53,7 +45,7 @@ export default async function DashboardLayout({
         </nav>
 
         <div className="p-4 border-t border-blue-800">
-          <UserButton />
+          {/* UserButton — wird mit Clerk reaktiviert */}
         </div>
       </aside>
 

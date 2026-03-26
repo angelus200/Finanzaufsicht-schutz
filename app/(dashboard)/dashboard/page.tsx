@@ -1,4 +1,3 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,8 +5,7 @@ import Link from "next/link";
 import { ShoppingBag, FileText, ArrowRight, Plus } from "lucide-react";
 
 export default async function DashboardSeite() {
-  const user = await currentUser();
-  const vorname = user?.firstName ?? "Nutzer";
+  const vorname = "Nutzer"; // Clerk deaktiviert — später reaktivieren
 
   return (
     <div>

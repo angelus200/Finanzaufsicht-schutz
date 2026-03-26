@@ -1,21 +1,12 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
 
-// Geschützte Routen — erfordern Authentifizierung
-const isProtectedRoute = createRouteMatcher([
-  "/dashboard(.*)",
-  "/api/checkout(.*)",
-]);
-
-// Clerk-Proxy für Authentifizierung — schützt Dashboard und Checkout
-export const proxy = clerkMiddleware(async (auth, request) => {
-  if (isProtectedRoute(request)) {
-    await auth.protect();
-  }
-});
+// Clerk-Middleware deaktiviert — wird später reaktiviert
+export function proxy(_request: NextRequest) {
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
-    // Alle Routen außer Next.js-Interna und statische Dateien
     "/((?!_next/static|_next/image|favicon.ico|public/).*)",
   ],
 };
