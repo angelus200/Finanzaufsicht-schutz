@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import { evaluiereSchnellcheck, type SchnellcheckInput } from "@/lib/schnellcheck-logic";
 
 export async function POST(request: NextRequest) {
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const bewertung = evaluiereSchnellcheck(input);
 
     // In Datenbank speichern
-    const schnellcheck = await prisma.schnellcheck.create({
+    const schnellcheck = await getPrisma().schnellcheck.create({
       data: {
         userId: userId ?? undefined,
         sessionId: body.sessionId ?? undefined,

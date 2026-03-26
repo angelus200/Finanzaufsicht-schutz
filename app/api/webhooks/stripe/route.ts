@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import type Stripe from "stripe";
 
 // Stripe-Webhooks: Bestellstatus synchronisieren
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const orderId = session.metadata?.orderId;
 
     if (orderId) {
-      await prisma.order.update({
+      await getPrisma().order.update({
         where: { id: orderId },
         data: {
           status: "PAID",
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const orderId = session.metadata?.orderId;
 
     if (orderId) {
-      await prisma.order.update({
+      await getPrisma().order.update({
         where: { id: orderId },
         data: { status: "CANCELLED" },
       });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await prisma.contactRequest.create({
+    await getPrisma().contactRequest.create({
       data: { name, email, company, subject, message },
     });
 

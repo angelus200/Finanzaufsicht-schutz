@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Upsert: bereits vorhandene Adressen nicht duplizieren
-    await prisma.newsletterSubscriber.upsert({
+    await getPrisma().newsletterSubscriber.upsert({
       where: { email },
       create: { email, firstName },
       update: { firstName },
