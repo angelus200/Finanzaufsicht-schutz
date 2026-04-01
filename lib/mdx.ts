@@ -3,18 +3,25 @@ import path from "path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
 
-export interface ArticleFrontmatter {
+export interface ArticleSeo {
+  title?: string;
+  description?: string;
+  keywords?: string[];
+}
+
+export interface ArticleMeta {
+  slug: string;
   title: string;
   description: string;
+  /** ISO date string — normalised from `publishedAt` or `date` */
   date: string;
+  updatedAt?: string;
   category?: string;
   tags?: string[];
   author?: string;
-}
-
-export interface ArticleMeta extends ArticleFrontmatter {
-  slug: string;
+  featured?: boolean;
   readingTimeText: string;
+  seo?: ArticleSeo;
 }
 
 const contentDir = path.join(process.cwd(), "content");
@@ -29,17 +36,28 @@ export function getArticleBySlug(
 
   const raw = fs.readFileSync(filePath, "utf8");
   const { data, content } = matter(raw);
-  const stats = readingTime(content);
+
+  // Normalise date: prefer publishedAt, fall back to date
+  const date: string = data.publishedAt ?? data.date ?? "";
+
+  // Reading time: use frontmatter number if provided, else compute
+  const readingTimeText =
+    typeof data.readingTime === "number"
+      ? `${data.readingTime} min Lesezeit`
+      : readingTime(content).text;
 
   return {
     slug,
     title: data.title ?? slug,
     description: data.description ?? "",
-    date: data.date ?? "",
+    date,
+    updatedAt: data.updatedAt,
     category: data.category,
     tags: data.tags ?? [],
     author: data.author,
-    readingTimeText: stats.text,
+    featured: data.featured === true,
+    readingTimeText,
+    seo: data.seo,
   };
 }
 

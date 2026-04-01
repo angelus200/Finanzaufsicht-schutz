@@ -21,8 +21,9 @@ export async function generateMetadata({
   const article = getArticleBySlug("wissen", slug);
   if (!article) return {};
   return {
-    title: `${article.title} | Finanzaufsicht-Schutz`,
-    description: article.description,
+    title: `${article.seo?.title ?? article.title} | Finanzaufsicht-Schutz`,
+    description: article.seo?.description ?? article.description,
+    keywords: article.seo?.keywords,
   };
 }
 
@@ -51,17 +52,19 @@ export default async function WissenArtikelPage({
         Zur Wissensdatenbank
       </Link>
 
-      {/* Artikel-Header */}
-      <header className="mb-10">
-        {article.category && (
-          <Badge variant="secondary" className="mb-3">
-            {article.category}
-          </Badge>
-        )}
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
-          {article.title}
-        </h1>
-        <div className="flex items-center gap-4 text-sm text-gray-400">
+      {/* Artikel-Header — Metadaten; H1 kommt aus dem MDX-Inhalt */}
+      <header className="mb-8">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {article.featured && (
+            <Badge className="bg-amber-100 text-amber-800 border-amber-200 border">
+              Featured
+            </Badge>
+          )}
+          {article.category && (
+            <Badge variant="secondary">{article.category}</Badge>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
           <span className="flex items-center gap-1">
             <Clock className="h-3.5 w-3.5" />
             {article.readingTimeText}
@@ -74,6 +77,16 @@ export default async function WissenArtikelPage({
                 day: "numeric",
               })}
             </time>
+          )}
+          {article.updatedAt && article.updatedAt !== article.date && (
+            <span className="text-xs">
+              Aktualisiert{" "}
+              {new Date(article.updatedAt).toLocaleDateString("de-DE", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
           )}
         </div>
       </header>
