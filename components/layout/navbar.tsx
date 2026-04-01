@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Shield, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Shield, Menu, X, LayoutDashboard } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const navLinks = [
   { href: "/wissen", label: "Wissen" },
@@ -15,10 +15,25 @@ const navLinks = [
   { href: "/ueber-uns", label: "Über uns" },
 ];
 
-// Clerk-Auth-Komponenten deaktiviert — werden später reaktiviert
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [menuOffen, setMenuOffen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : { user: null }))
+      .then((data) => setIsLoggedIn(!!data.user))
+      .catch(() => setIsLoggedIn(false));
+  }, [pathname]);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setIsLoggedIn(false);
+    router.push("/");
+    router.refresh();
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
@@ -48,9 +63,35 @@ export function Navbar() {
 
           {/* Auth-Bereich */}
           <div className="hidden md:flex items-center gap-3">
-            <Button size="sm" className="bg-blue-900 hover:bg-blue-800" render={<Link href="/schnellcheck" />}>
-              Schnellcheck starten
-            </Button>
+            {isLoggedIn ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-1.5 text-sm font-medium text-blue-900 hover:text-blue-700 transition-colors"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Abmelden
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm font-medium text-gray-600 hover:text-blue-900 transition-colors"
+                >
+                  Anmelden
+                </Link>
+                <Button size="sm" className="bg-blue-900 hover:bg-blue-800" render={<Link href="/schnellcheck" />}>
+                  Schnellcheck starten
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile-Menü-Toggle */}
@@ -79,13 +120,40 @@ export function Navbar() {
               </Link>
             ))}
             <hr className="my-2" />
-            <Link
-              href="/schnellcheck"
-              className="text-sm font-semibold text-blue-900"
-              onClick={() => setMenuOffen(false)}
-            >
-              → Schnellcheck starten
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="text-sm font-semibold text-blue-900"
+                  onClick={() => setMenuOffen(false)}
+                >
+                  → Dashboard
+                </Link>
+                <button
+                  onClick={() => { handleLogout(); setMenuOffen(false); }}
+                  className="text-left text-sm text-gray-500"
+                >
+                  Abmelden
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm font-medium text-gray-700 hover:text-blue-900 py-1"
+                  onClick={() => setMenuOffen(false)}
+                >
+                  Anmelden
+                </Link>
+                <Link
+                  href="/schnellcheck"
+                  className="text-sm font-semibold text-blue-900"
+                  onClick={() => setMenuOffen(false)}
+                >
+                  → Schnellcheck starten
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       )}

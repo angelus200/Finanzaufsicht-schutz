@@ -8,23 +8,47 @@ datasource db {
 }
 
 // ============================================
-// AUTH (Clerk sync)
+// AUTH (eigene Session-basierte Lösung)
 // ============================================
 
 model User {
-  id            String    @id @default(cuid())
-  clerkId       String    @unique
-  email         String    @unique
-  firstName     String?
-  lastName      String?
-  company       String?
-  role          UserRole  @default(CUSTOMER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  email          String    @unique
+  passwordHash   String?
+  emailVerified  Boolean   @default(false)
+  firstName      String?
+  lastName       String?
+  company        String?
+  role           UserRole  @default(CUSTOMER)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  orders        Order[]
-  schnellchecks Schnellcheck[]
-  submissions   CaseSubmission[]
+  orders         Order[]
+  schnellchecks  Schnellcheck[]
+  submissions    CaseSubmission[]
+  sessions       Session[]
+  passwordResets PasswordReset[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum UserRole {
